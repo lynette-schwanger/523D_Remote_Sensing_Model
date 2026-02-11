@@ -1,0 +1,58 @@
+---
+title: "523D_Remote_Sensing_Model"
+author: "Lynette Schwanger"
+date: "2026-02-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("Setup_523D.R")
+```
+
+```{r}
+setwd("/Users/lynetteschwanger/Desktop/CSU/Spring_2026_Classes/ESS_523D_Environmental_Data_Science_Applications_Reproducible_Remote_Sensing_Models/523D_Remote_Sensing_Model/523D_Remote_Sensing_Model")
+```
+
+```{r}
+#load in training data
+tw4_dd <- read_csv("data/raw/AMF_US-Tw4_FLUXNET_FULLSET_DD_2013-2023_5-7.csv")
+```
+
+```{r}
+#what columns do we have
+names(tw4_dd)
+```
+
+```{r}
+#select only columns I need
+tw4_NEE <- tw4_dd %>%
+  select(TIMESTAMP, NEE_VUT_REF, NEE_VUT_REF_QC)
+```
+
+```{r}
+#oh, but I only need one year. 2018 is ~3 years after restoration, should be prime veg time
+tw4_NEE_2018 <- tw4_NEE %>%
+  filter(TIMESTAMP >= 20180101, TIMESTAMP <= 20181231)
+```
+
+```{r}
+#let's look at it
+plot(tw4_NEE_2018)
+```
+
+```{r}
+#a look at just the important stuff
+tw4_NEE_2018 %>%
+  ggplot(aes(x = TIMESTAMP, y = NEE_VUT_REF)) +
+  geom_line() 
+```
+
+```{r}
+#ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother
+
+```
+
