@@ -52,7 +52,13 @@ tw4_NEE_2018 %>%
 ```
 
 ```{r}
-#ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother
-
+#ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother. let's fix the date first
+tw4_NEE_2018 %>%
+  mutate(date = ymd(TIMESTAMP))
 ```
+
+```{r}
+#should I remove low QC values? 
+```
+
 
