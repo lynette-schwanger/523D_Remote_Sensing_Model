@@ -51,14 +51,70 @@ tw4_NEE_2018 %>%
   geom_line() 
 ```
 
-```{r}
-#ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother. let's fix the date first
-tw4_NEE_2018 %>%
-  mutate(date = ymd(TIMESTAMP))
-```
 
 ```{r}
-#should I remove low QC values? 
+##ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother. should I also remove low QC values? 
 ```
+
+
+```{r}
+#let's fix the date. 
+tw4_NEE_2018 %>%
+  mutate(date = ymd(TIMESTAMP))
+
+#but how to save to tw4_NEE_2018 object?
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
