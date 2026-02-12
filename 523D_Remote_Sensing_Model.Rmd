@@ -34,7 +34,7 @@ tw4_NEE <- tw4_dd %>%
 ```
 
 ```{r}
-#oh, but I only need one year. 2018 is ~3 years after restoration, should be prime veg time
+#oh, but I only need one year. 2018 is ~4 years after restoration, should be prime veg time
 tw4_NEE_2018 <- tw4_NEE %>%
   filter(TIMESTAMP >= 20180101, TIMESTAMP <= 20181231)
 ```
@@ -51,28 +51,96 @@ tw4_NEE_2018 %>%
   geom_line() 
 ```
 
-
 ```{r}
-##ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother. should I also remove low QC values? 
+##ok, funky curve but it's there. Once I aggregate over 8 day averages the curve might be smoother. Should probably also remove low QC values. But how to do without removing large sections
 ```
-
 
 ```{r}
 #let's fix the date. 
-tw4_NEE_2018 %>%
+tw4_NEE_2018 <- tw4_NEE_2018 %>%
   mutate(date = ymd(TIMESTAMP))
 
-#but how to save to tw4_NEE_2018 object?
 ```
 
 
+```{r}
+#I think I got MODIS data downloaded, no issues with dates I wanted and cloud coverage. BUT wtheck do I do with hdf files? Chat says to 
+
+f <- "/Users/lynetteschwanger/Desktop/CSU/Spring_2026_Classes/ESS_523D_Environmental_Data_Science_Applications_Reproducible_Remote_Sensing_Models/523D_Remote_Sensing_Model/523D_Remote_Sensing_Model/data/MODIS_hdf/MOD09A1.A2018001.h08v05.061.2021305194337.hdf"
+
+s <- sds(f)
+sources(s)
+```
+
+```{r}
+src1 <- sources(s)[1]
+src1
+```
 
 
+```{r}
+#chat says plot it like this
+b1 <- rast(src1) * 0.0001
+plot(b1, main = "MOD09A1 Band 1 (sur_refl_b01) reflectance")
+```
+
+```{r}
+refl <- rast(sources(s)[1:7]) * 0.0001  # bands 1–7 scaled
+
+# RGB = (b01 red, b04 green, b03 blue)
+rgb <- refl[[c(1,4,3)]]
+plotRGB(rgb, stretch = "hist", main = "MOD09A1 RGB (b01,b04,b03)")
+```
 
 
+```{r}
+#zooming in
+roi <- buffer(tw4_modis, width = 20000)  # 20 km buffer; adjust to taste
+rgb_roi <- crop(rgb, roi)
+
+plotRGB(rgb_roi, stretch = "hist", main = "Zoomed MODIS RGB around Tw4")
+points(tw4_modis, pch = 16, cex = 1.5)
+points(tw_other_modis, pch = 3, cex = 1.8, lwd = 2)
+```
 
 
+```{r}
+tw4_ll <- vect(data.frame(lon = -121.6413, lat = 38.1027),
+               geom = c("lon","lat"), crs = "EPSG:4326")
 
+tw4_modis <- project(tw4_ll, crs(rgb))  # reproject to MODIS sinusoidal
+
+plotRGB(rgb, stretch = "hist", main = "MOD09A1 RGB + site")
+points(tw4_modis, pch = 16, cex = 1.2)
+```
+
+```{r}
+tw_other_ll <- vect(data.frame(lon = -121.6469, lat = 38.1074),
+                    geom = c("lon","lat"), crs = "EPSG:4326")
+tw_other_modis <- project(tw_other_ll, crs(rgb))
+
+points(tw_other_modis, pch = 3, cex = 1.8, lwd = 2)
+```
+
+```{r}
+cell_tw4   <- cellFromXY(rgb[[1]], crds(tw4_modis))
+cell_other <- cellFromXY(rgb[[1]], crds(tw_other_modis))
+
+cell_tw4
+cell_other
+cell_tw4 == cell_other
+```
+
+```{r}
+# meters between the two points in MODIS projected CRS
+distance(tw4_modis, tw_other_modis)
+
+# how many pixels apart?
+xy1 <- crds(tw4_modis)
+xy2 <- crds(tw_other_modis)
+res_m <- res(rgb[[1]])      # pixel size in meters
+sqrt(((xy1[1]-xy2[1])/res_m[1])^2 + ((xy1[2]-xy2[2])/res_m[2])^2)
+```
 
 
 
