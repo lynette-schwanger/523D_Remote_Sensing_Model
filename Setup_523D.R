@@ -29,7 +29,9 @@ packages <- c('tidyverse',
               'mlr3',
               'terra',
               'mgcv',
-              'lubridate'
+              'lubridate',
+              'appeears',
+              'keyring'
 )
 
 # use the packageLoad function we created on those packages

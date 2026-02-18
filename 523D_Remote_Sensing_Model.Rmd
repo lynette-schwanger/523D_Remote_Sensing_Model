@@ -36,7 +36,7 @@ tw4_NEE <- tw4_dd %>%
 ```{r}
 #oh, but I only need one year. 2018 is ~4 years after restoration, should be prime veg time
 tw4_NEE_2018 <- tw4_NEE %>%
-  filter(TIMESTAMP >= 20180101, TIMESTAMP <= 20181231)
+  filter(TIMESTAMP_START >= 20180101, TIMESTAMP_START <= 20181231)
 ```
 
 ```{r}
