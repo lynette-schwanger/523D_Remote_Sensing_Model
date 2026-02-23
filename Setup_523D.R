@@ -31,7 +31,9 @@ packages <- c('tidyverse',
               'mgcv',
               'lubridate',
               'appeears',
-              'keyring'
+              'keyring', 
+              'mlr3learners',
+              'data.table'
 )
 
 # use the packageLoad function we created on those packages
