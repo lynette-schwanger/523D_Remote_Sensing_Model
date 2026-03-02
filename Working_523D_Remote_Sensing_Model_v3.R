@@ -564,7 +564,14 @@ arrows(imp_rep$m - imp_rep$se, centers,
 
 #function to plot each
 plot_obs_pred <- function(obs, pred, rmse, main_title, caption_text){
+  
   lims <- range(c(obs, pred), na.rm = TRUE)
+  
+  op <- par(no.readonly = TRUE)
+  on.exit(par(op))
+  
+  # Bigger bottom margin so multi-line caption fits
+  par(mar = c(8.5, 4.5, 4, 1) + 0.1)
   
   plot(pred, obs,
        xlim = lims, ylim = lims,
@@ -580,7 +587,12 @@ plot_obs_pred <- function(obs, pred, rmse, main_title, caption_text){
        y = usr[4] - 0.10 * diff(usr[3:4]),
        labels = paste0("RMSE = ", sprintf("%.2f", rmse)))
   
-  mtext(side = 3, line = 5, adj = 0, cex = 0.8, text = caption_text)
+  # Wrap caption + draw it closer to the plot so it doesn't get clipped
+  lines <- strsplit(caption_text, "\n", fixed = TRUE)[[1]]
+  cap <- paste(vapply(lines, function(s) paste(strwrap(s, width = 90), collapse = "\n"),
+                      character(1)),
+               collapse = "\n")
+  mtext(text = cap, side = 1, line = 5.2, adj = 0, cex = 0.8)
 }
 
 
@@ -595,8 +607,8 @@ plot_obs_pred(
   pred = p_ndvi,
   rmse = rmse_ndvi,
   main_title = "GPP predicted from NDVI",
-  caption_text = paste0("Observed vs. predicted daily GPP using NDVI computed from HLS reflectance. ",
-                        "Training RMSE = ", sprintf("%.2f", rmse_ndvi), " gC m-² d-¹.")
+  caption_text = paste0("Observed vs. predicted daily GPP using NDVI computed from HLS reflectance.\n",
+                        "Training RMSE = ", sprintf("%.2f", rmse_ndvi), " gC m-² d-¹")
 )
 
 
@@ -611,8 +623,8 @@ plot_obs_pred(
   pred = p_ndmi,
   rmse = rmse_ndmi,
   main_title = "GPP predicted from NDMI",
-  caption_text = paste0("Observed vs. predicted daily GPP using NDMI computed from HLS reflectance. ",
-                        "Training RMSE = ", sprintf("%.2f", rmse_ndmi), " gC m-² d-¹.")
+  caption_text = paste0("Observed vs. predicted daily GPP using NDMI computed from HLS reflectance.\n",
+                        "Training RMSE = ", sprintf("%.2f", rmse_ndmi), " gC m-² d-¹")
 )
 
 #EVI MODEL
@@ -626,8 +638,8 @@ plot_obs_pred(
   pred = p_evi,
   rmse = rmse_evi,
   main_title = "GPP predicted from EVI",
-  caption_text = paste0("Observed vs. predicted daily GPP using EVI computed from HLS reflectance. ",
-                        "Training RMSE = ", sprintf("%.2f", rmse_evi), " gC m-² d-¹.")
+  caption_text = paste0("Observed vs. predicted daily GPP using EVI computed from HLS reflectance.\n",
+                        "Training RMSE = ", sprintf("%.2f", rmse_evi), " gC m-² d-¹")
 )
 
 
@@ -651,7 +663,7 @@ plot_obs_pred(
   main_title = "GPP predicted from EVI and NDMI",
   caption_text = paste0(
     "Observed vs. predicted daily GPP using EVI and NDMI computed from HLS reflectance. ",
-    "Training RMSE = ", sprintf("%.2f", rmse_final_train), " gC m-² d-¹."
+    "Training RMSE = ", sprintf("%.2f", rmse_final_train), " gC m-² d-¹"
   )
 )
 
@@ -737,7 +749,7 @@ text(x = usr[1] + 0.12 * diff(usr[1:2]),
 caption_text <- paste0(
   "Observed vs. predicted daily GPP on the test dataset using EVI and NDMI computed from HLS reflectance.\n",
   "Test RMSE = ", sprintf("%.2f", rmse_test), " gC m-² d-¹ \n",
-  "Test R\u00B2 = 0.65"
+  "Test R\u00B2 = 0.64"
 )
 
 mtext(side = 1, line = 6, adj = 0, cex = 0.8, text = caption_text)
@@ -765,7 +777,7 @@ abline(h = 0, lty = 2)
 
 bias <- mean(res, na.rm = TRUE)
 
-caption_text <- "On average, observed GPP is 0.86 gC m-² d-¹ higher than the model's predicted GPP."
+caption_text <- "On average, observed GPP is 0.73 gC m-² d-¹ higher than the model's predicted GPP."
   
 plot(pred, res,
      xlab = expression("Predicted GPP (gC m"^-2*" d"^-1*")"),
@@ -776,9 +788,9 @@ abline(h = 0, lty = 2)
 
 # print bias on the plot (top-left)
 usr <- par("usr")
-text(x = usr[1] + 0.15 * diff(usr[1:2]),
+text(x = usr[1] + 0.20 * diff(usr[1:2]),
      y = usr[4] - 0.15 * diff(usr[3:4]),
      labels = paste0("Bias (mean residual) = ", sprintf("%.2f", bias)))
 
-mtext(side = 1, line = 4, adj = 0, cex = 0.8, text = caption_text)
+mtext(side = 1.5, line = 4, adj = 0, cex = 0.8, text = caption_text)
 
