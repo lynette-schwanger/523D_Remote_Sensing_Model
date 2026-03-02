@@ -500,14 +500,14 @@ tw1_dd_2018 %>%
 
 
 #let's fix the caption
-caption_tw4 <- "Figure 1a: 2018 daily GPP at US-Tw4. Daily gross primary productivity (GPP; g C m-2 d-1) shows strong seasonality, remaining low through winter, increasing rapidly in spring, peaking in mid-summer, and declining through fall back to winter levels. Source: FLUXNET2015 US-Tw4, Dataset. https://doi.org/10.18140/FLX/1440111"
+caption_tw4 <- "2018 daily GPP at US-Tw4. Daily gross primary productivity (GPP; gC m-² d-¹) shows strong seasonality, remaining low through winter, increasing rapidly in spring, peaking in mid-summer, and declining through fall back to winter levels. Source: FLUXNET2015 US-Tw4, Dataset. https://doi.org/10.18140/FLX/1440111"
 
 tw4_dd_2018 %>%
   ggplot(aes(x = date, y = GPP_NT_VUT_REF)) +
   geom_line() +
-  labs(title = "2018 Daily GPP at Model Training Site: US-Tw4 - Twitchell East End Wetland", 
+  labs(title = "2018 Daily GPP at US-Tw4: Twitchell East End Wetland", 
        x = "Date", 
-       y = "GPP (gC m-2 d-1)", 
+       y = "GPP (gC m-² d-¹)", 
        caption = str_wrap(caption_tw4, width = 120)
   ) +
   theme_classic(base_size = 14) +
@@ -516,14 +516,14 @@ tw4_dd_2018 %>%
     plot.margin  = margin(t = 10, r = 10, b = 20, l = 10)
   )
 
-caption_tw1 <- "Figure 1b: 2018 daily GPP at US-Tw1. Daily gross primary productivity (GPP; g C m-2 d-1) shows strong seasonality, remaining low through winter, increasing rapidly in spring, peaking in mid-summer, and declining through fall back to winter levels. Source: FLUXNET2015 US-Tw4, Dataset. https://doi.org/10.18140/FLX/1440108"
+caption_tw1 <- "2018 daily GPP at US-Tw1. Daily gross primary productivity (GPP; gC m-² d-¹) shows strong seasonality, remaining low through winter, increasing rapidly in spring, peaking in mid-summer, and declining through fall back to winter levels. Source: FLUXNET2015 US-Tw4, Dataset. https://doi.org/10.18140/FLX/1440108"
 
 tw1_dd_2018 %>%
   ggplot(aes(x = date, y = GPP_NT_VUT_REF)) +
   geom_line() +
-  labs(title = "2018 Daily GPP at Model Testing Site: US-Tw1 - Twitchell Wetland West Pond", 
+  labs(title = "2018 Daily GPP US-Tw1: Twitchell Wetland West Pond", 
        x = "Date", 
-       y = "GPP (gC m-2 d-1)", 
+       y = "GPP (gC m-² d-¹)", 
        caption = str_wrap(caption_tw1, width = 120)
   ) +
   theme_classic(base_size = 14) +
