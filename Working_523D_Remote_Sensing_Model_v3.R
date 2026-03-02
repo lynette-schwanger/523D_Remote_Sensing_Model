@@ -315,7 +315,7 @@ tw1_lss2 <- bind_rows(tw1_ls_converted, tw1_s2_converted) %>%
 tw4_lss2 <- bind_rows(tw4_ls_converted, tw4_s2_converted) %>%
   arrange(date, sensor)
 
-#keep only the best days when there are dupes
+#create easy label for cloud free days
 tw1_lss2 <- tw1_lss2 %>%
   mutate(is_clear = (cloud == "0b0" & cshadow == "0b0")) %>%
   group_by(date) %>%
@@ -336,6 +336,15 @@ tw1_lss2 <- tw1_lss2 %>%
 
 tw4_lss2 <- tw4_lss2 %>%
   filter(is_clear == TRUE)
+
+#keep only low aerosol days
+tw1_lss2 <- tw1_lss2 %>%
+  filter(aerosol == "Low aerosol")
+
+
+tw4_lss2 <- tw4_lss2 %>%
+  filter(aerosol == "Low aerosol")
+
 
 class(tw1_lss2$date)
 
@@ -421,7 +430,7 @@ p_train <- predict(gam_ndvi, newdata = train_df, type = "response")
 rmse_train <- sqrt(mean((train_df$GPP_NT_VUT_REF - p_train)^2, na.rm = TRUE))
 rmse_train
 
-#NDVI RMSE = 2.134392
+#NDVI RMSE = 1.915583
 
 #train using NDMI
 gam_ndmi <- gam(GPP_NT_VUT_REF ~ s(NDMI, k = 30),
@@ -431,7 +440,7 @@ p_ndmi <- predict(gam_ndmi, newdata = train_df, type = "response")
 rmse_ndmi <- sqrt(mean((train_df$GPP_NT_VUT_REF - p_ndmi)^2, na.rm = TRUE))
 rmse_ndmi
 
-#NDMI RMSE = 2.471366
+#NDMI RMSE = 2.363833
 
 #train using EVI
 gam_evi <- gam(GPP_NT_VUT_REF ~ s(EVI, k = 30),
@@ -441,7 +450,7 @@ p_evi <- predict(gam_evi, newdata = train_df, type = "response")
 rmse_evi <- sqrt(mean((train_df$GPP_NT_VUT_REF - p_evi)^2, na.rm = TRUE))
 rmse_evi
 
-#EVI RMSE = 1.78255
+#EVI RMSE = 1.648196
 
 
 gam_evi_ndvi <- gam(GPP_NT_VUT_REF ~ s(EVI, k=30) + s(NDVI, k=30),
@@ -456,9 +465,9 @@ gam_all3 <- gam(GPP_NT_VUT_REF ~ s(EVI, k=30) + s(NDVI, k=30) + s(NDMI, k=30),
 rmse_fun <- function(obs, pred) sqrt(mean((obs - pred)^2, na.rm=TRUE))
 #^is it fun? IS IT
 
-rmse_evi_ndvi <- rmse(train_df$GPP_NT_VUT_REF, predict(gam_evi_ndvi, train_df, type="response"))
-rmse_evi_ndmi <- rmse(train_df$GPP_NT_VUT_REF, predict(gam_evi_ndmi, train_df, type="response"))
-rmse_all3     <- rmse(train_df$GPP_NT_VUT_REF, predict(gam_all3,     train_df, type="response"))
+rmse_evi_ndvi <- rmse_fun(train_df$GPP_NT_VUT_REF, predict(gam_evi_ndvi, train_df, type="response"))
+rmse_evi_ndmi <- rmse_fun(train_df$GPP_NT_VUT_REF, predict(gam_evi_ndmi, train_df, type="response"))
+rmse_all3     <- rmse_fun(train_df$GPP_NT_VUT_REF, predict(gam_all3,     train_df, type="response"))
 
 data.frame(
   model = c("EVI", "EVI+NDVI", "EVI+NDMI", "EVI+NDVI+NDMI"),
@@ -467,11 +476,11 @@ data.frame(
 
 plot(gam_all3, pages = 1, scheme = 1, shade = TRUE)
 
-m <- gam_all3  # <- change to your model name if needed
+m <- gam_all3  
 
 # baseline performance on training data
 p_base <- predict(m, newdata = train_df, type = "response")
-rmse_base <- rmse(train_df$GPP_NT_VUT_REF, p_base)
+rmse_base <- rmse_fun(train_df$GPP_NT_VUT_REF, p_base)
 
 set.seed(1)
 
@@ -482,7 +491,7 @@ imp <- lapply(vars, function(v){
   df_perm[[v]] <- sample(df_perm[[v]])  # shuffle that column
   
   p_perm <- predict(m, newdata = df_perm, type = "response")
-  rmse_perm <- rmse(train_df$GPP_NT_VUT_REF, p_perm)
+  rmse_perm <- rmse_fun(train_df$GPP_NT_VUT_REF, p_perm)
   
   data.frame(variable = v, delta_rmse = rmse_perm - rmse_base)
 }) |> bind_rows() |> arrange(desc(delta_rmse))
@@ -500,7 +509,7 @@ ggplot(imp, aes(x = reorder(variable, delta_rmse), y = delta_rmse)) +
 
 #__________________________________________________________________#
 #chat code I don't understand that gets me the variable importance plot
-#chat based it on the R scripts provided by O'Connel
+#chat based it on the R scripts provided by O'Connell
 
 m <- gam_all3   # <-- or whatever your final GAM object is
 vars <- c("EVI", "NDVI", "NDMI")
@@ -571,7 +580,7 @@ plot_obs_pred <- function(obs, pred, rmse, main_title, caption_text){
        y = usr[4] - 0.10 * diff(usr[3:4]),
        labels = paste0("RMSE = ", sprintf("%.2f", rmse)))
   
-  mtext(side = 1, line = 5, adj = 0, cex = 0.8, text = caption_text)
+  mtext(side = 3, line = 5, adj = 0, cex = 0.8, text = caption_text)
 }
 
 
