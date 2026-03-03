@@ -733,7 +733,11 @@ gpp_by_date %>%
   geom_line() 
 
 
+#find my clear 2018 dates to pull rasters for
+tw1_ls_2018 <- read_csv("data/raw/2018_US_Tw1_LS/point-HLSL30-020-results.csv")
 
+tw1_s2_2018 <- read_csv("data/raw/2018_US_Tw1_S2/point-HLSS30-020-results.csv")
 
+tw4_ls_2018 <- read_csv("data/raw/2018_US_Tw4_LS/point-HLSL30-020-results.csv")
 
-
+tw4_s2_2018 <- read_csv("data/raw/2018_US_Tw4_S2/point-HLSS30-020-results.csv")

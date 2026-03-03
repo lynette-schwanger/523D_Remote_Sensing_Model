@@ -794,3 +794,131 @@ text(x = usr[1] + 0.20 * diff(usr[1:2]),
 
 mtext(side = 1.5, line = 4, adj = 0, cex = 0.8, text = caption_text)
 
+
+#find my clear 2018 dates to pull rasters for
+tw1_ls_2018 <- read_csv("data/raw/2018_US_Tw1_LS/point-HLSL30-020-results.csv")
+
+tw1_s2_2018 <- read_csv("data/raw/2018_US_Tw1_S2/point-HLSS30-020-results.csv")
+
+tw4_ls_2018 <- read_csv("data/raw/2018_US_Tw4_LS/point-HLSL30-020-results.csv")
+
+tw4_s2_2018 <- read_csv("data/raw/2018_US_Tw4_S2/point-HLSS30-020-results.csv")
+
+
+tw1_ls_2018 <- tw1_ls_2018 %>%
+  transmute(
+    latitude = Latitude,
+    longitude = Longitude,
+    date = as.Date(Date),
+    sensor = Category,
+    hls_tile = HLS_Tile,
+    B01 = HLSL30_020_B01,
+    B02 = HLSL30_020_B02,
+    B03 = HLSL30_020_B03,
+    B04 = HLSL30_020_B04,
+    nir = HLSL30_020_B05,  
+    swir1 = HLSL30_020_B06,
+    swir2 = HLSL30_020_B07,
+    fmask = HLSL30_020_Fmask,
+    cloud = HLSL30_020_Fmask_Cloud,
+    cshadow = HLSL30_020_Fmask_Cloud_shadow,
+    aerosol = HLSL30_020_Fmask_Aerosol_level_Description)
+
+tw1_s2_2018 <- tw1_s2_2018 %>%
+  transmute(
+    latitude = Latitude,
+    longitude = Longitude,
+    date = as.Date(Date),
+    sensor = Category,
+    hls_tile = HLS_Tile,
+    B01 = HLSS30_020_B01,
+    B02 = HLSS30_020_B02,
+    B03 = HLSS30_020_B03,
+    B04 = HLSS30_020_B04,
+    nir = HLSS30_020_B8A,  
+    swir1 = HLSS30_020_B11,
+    swir2 = HLSS30_020_B12,
+    fmask = HLSS30_020_Fmask,
+    cloud = HLSS30_020_Fmask_Cloud,
+    cshadow = HLSS30_020_Fmask_Cloud_shadow,
+    aerosol = HLSS30_020_Fmask_Aerosol_level_Description)
+
+
+tw4_ls_2018 <- tw4_ls_2018 %>%
+  transmute(
+    latitude = Latitude,
+    longitude = Longitude,
+    date = as.Date(Date),
+    sensor = Category,
+    hls_tile = HLS_Tile,
+    B01 = HLSL30_020_B01,
+    B02 = HLSL30_020_B02,
+    B03 = HLSL30_020_B03,
+    B04 = HLSL30_020_B04,
+    nir = HLSL30_020_B05,  
+    swir1 = HLSL30_020_B06,
+    swir2 = HLSL30_020_B07,
+    fmask = HLSL30_020_Fmask,
+    cloud = HLSL30_020_Fmask_Cloud,
+    cshadow = HLSL30_020_Fmask_Cloud_shadow,
+    aerosol = HLSL30_020_Fmask_Aerosol_level_Description)
+
+tw4_s2_2018 <- tw4_s2_2018 %>%
+  transmute(
+    latitude = Latitude,
+    longitude = Longitude,
+    date = as.Date(Date),
+    sensor = Category,
+    hls_tile = HLS_Tile,
+    B01 = HLSS30_020_B01,
+    B02 = HLSS30_020_B02,
+    B03 = HLSS30_020_B03,
+    B04 = HLSS30_020_B04,
+    nir = HLSS30_020_B8A,  
+    swir1 = HLSS30_020_B11,
+    swir2 = HLSS30_020_B12,
+    fmask = HLSS30_020_Fmask,
+    cloud = HLSS30_020_Fmask_Cloud,
+    cshadow = HLSS30_020_Fmask_Cloud_shadow,
+    aerosol = HLSS30_020_Fmask_Aerosol_level_Description)
+
+#phew. one (well two actually) lines of code to bind them all
+tw1_lss2_2018 <- bind_rows(tw1_ls_2018, tw1_s2_2018) %>%
+  arrange(date, sensor)
+
+tw4_lss2_2018 <- bind_rows(tw4_ls_2018, tw4_s2_2018) %>%
+  arrange(date, sensor)
+
+#create easy label for cloud free days
+tw1_lss2_2018 <- tw1_lss2_2018 %>%
+  mutate(is_clear = (cloud == "0b0" & cshadow == "0b0")) %>%
+  group_by(date) %>%
+  arrange(desc(is_clear), sensor) %>%   
+  slice(1) %>%
+  ungroup()
+
+tw4_lss2_2018 <- tw4_lss2_2018 %>%
+  mutate(is_clear = (cloud == "0b0" & cshadow == "0b0")) %>%
+  group_by(date) %>%
+  arrange(desc(is_clear), sensor) %>%   
+  slice(1) %>%
+  ungroup()
+
+#keep only cloud free days
+tw1_lss2_2018 <- tw1_lss2_2018 %>%
+  filter(is_clear == TRUE)
+
+tw4_lss2_2018 <- tw4_lss2_2018 %>%
+  filter(is_clear == TRUE)
+
+#keep only low aerosol days
+tw1_lss2_2018 <- tw1_lss2_2018 %>%
+  filter(aerosol == "Low aerosol")
+
+
+tw4_lss2_2018 <- tw4_lss2_2018 %>%
+  filter(aerosol == "Low aerosol")
+
+tw1_lss2_2018$date
+
+tw4_lss2_2018$date
