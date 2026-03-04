@@ -21,3 +21,7 @@ tw4_aoi <- st_transform(tw4_pt, 32610) |> st_buffer(buf_m) |> st_transform(4326)
 
 st_write(tw1_aoi, "data/TW1_AOI_500m.geojson", delete_dsn = TRUE)
 st_write(tw4_aoi, "data/TW4_AOI_500m.geojson", delete_dsn = TRUE)
+
+#stack tw1 rasters
+files <- list.files(path = "data/raw/HLS_tw1_2018_rasters", pattern = "..doy2018020_aid0001_10N.tif$", full.names = TRUE)
+s_list <- lapply(files, rast)
