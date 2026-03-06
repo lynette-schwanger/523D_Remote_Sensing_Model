@@ -393,6 +393,11 @@ train_df <- train_flux %>%
 test_df <- test_flux %>%
   inner_join(test_hls, by = c("site", "date"))
 
+#ok now export
+write_csv(train_df, "data/train_joined_clean.csv")
+
+write_csv(test_df, "data/test_joined_clean.csv")
+
 
 #ok now compute NDVI
 train_df <- train_df %>%
