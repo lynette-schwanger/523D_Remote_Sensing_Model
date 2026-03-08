@@ -131,9 +131,18 @@ for (f in tif_files) {
   writeRaster(r2, out_file, overwrite = TRUE)
 }
 
-r <- rast("data/HLS_tw1_2018_stacks_renamed/HLSS30_tw1_stack_doy2018020_renamed.tif")
+r_tw1_2018020 <- rast("data/HLS_tw1_2018_stacks_renamed/HLSS30_tw1_stack_doy2018020_renamed.tif")
+r_tw1_2018110 <- rast("data/HLS_tw1_2018_stacks_renamed/HLSS30_tw1_stack_doy2018110_renamed.tif")
+r_tw1_2018230 <- rast("data/HLS_tw1_2018_stacks_renamed/HLSS30_tw1_stack_doy2018230_renamed.tif")
+r_tw1_2018310 <- rast("data/HLS_tw1_2018_stacks_renamed/HLSS30_tw1_stack_doy2018310_renamed.tif")
 
-names(r)
+names(r_tw1_2018310)
+
+plot(r_tw1_2018020)
+plot(r_tw1_2018110)
+plot(r_tw1_2018230)
+plot(r_tw1_2018310)
+
 
 in_dir  <- "data/HLS_tw4_2018_stacks"         # folder with your existing stacks
 out_dir <- "data/HLS_tw4_2018_stacks_renamed" # new folder for renamed stacks
@@ -158,12 +167,17 @@ for (f in tif_files) {
 }
 
 
-r <- rast("data/HLS_tw4_2018_stacks_renamed/HLSS30_tw4_stack_doy2018020_renamed.tif")
+r_tw4_2018020 <- rast("data/HLS_tw4_2018_stacks_renamed/HLSS30_tw4_stack_doy2018020_renamed.tif")
+r_tw4_2018110 <- rast("data/HLS_tw4_2018_stacks_renamed/HLSS30_tw4_stack_doy2018110_renamed.tif")
+r_tw4_2018230 <- rast("data/HLS_tw4_2018_stacks_renamed/HLSS30_tw4_stack_doy2018230_renamed.tif")
+r_tw4_2018310 <- rast("data/HLS_tw4_2018_stacks_renamed/HLSS30_tw4_stack_doy2018310_renamed.tif")
 
-names(r)
+names(r_tw4_2018310)
 
-plot(r)
-#^cool
+plot(r_tw4_2018020)
+plot(r_tw4_2018110)
+plot(r_tw4_2018230)
+plot(r_tw4_2018310)
 
 #YAYAYAYAY
 #ok, now I need to compute NDMI and EVI for the rasters
@@ -173,3 +187,31 @@ plot(r)
 #compute EVI
 (EVI = 2.5 * (nir - B04) / (nir + 6 * B04 - 7.5 * B02 + 1))
 
+
+in_dir  <- "data/HLS_tw1_2018_stacks_renamed"   # or tw1 folder
+out_dir <- "data/HLS_tw1_2018_indices"          # new folder for NDMI/EVI rasters
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+stack_files <- list.files(in_dir, pattern = "_renamed\\.tif$", full.names = TRUE)
+
+for (f in stack_files) {
+  r <- rast(f)
+  
+  # NDMI = (nir - swir1) / (nir + swir1)
+  ndmi <- (r[["nir"]] - r[["swir1"]]) / (r[["nir"]] + r[["swir1"]])
+  names(ndmi) <- "NDMI"
+  
+  # EVI = 2.5 * (nir - B04) / (nir + 6*B04 - 7.5*B02 + 1)
+  evi <- 2.5 * (r[["nir"]] - r[["B04"]]) / (r[["nir"]] + 6*r[["B04"]] - 7.5*r[["B02"]] + 1)
+  names(evi) <- "EVI"
+  
+  idx <- c(ndmi, evi)  # 2-layer stack: NDMI + EVI
+  
+  out_file <- file.path(out_dir, sub("_renamed\\.tif$", "_NDMI_EVI.tif", basename(f)))
+  writeRaster(idx, out_file, overwrite = TRUE)
+}
+
+r_tw1_indices_2018020 <- rast("data/HLS_tw1_2018_indices/HLSS30_tw1_stack_doy2018020_NDMI_EVI.tif")
+
+plot(r_tw1_indices_2018020)
+names(r_tw1_indices_2018020)

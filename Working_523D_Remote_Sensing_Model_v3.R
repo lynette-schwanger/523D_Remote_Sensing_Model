@@ -928,4 +928,237 @@ tw1_lss2_2018$date
 
 tw4_lss2_2018$date
 
+#ok saving my model finally oops
+dir.create("models", showWarnings = FALSE)
+saveRDS(gam_evi_ndmi, "models/gam_evi_ndmi.rds")
 
+all.vars(formula(gam_evi_ndmi))
+
+#YAY
+#now let's predict on a raster! 
+#load in my indices rasters
+r_tw1_indices_2018020 <- rast("data/HLS_tw1_2018_indices/HLSS30_tw1_stack_doy2018020_NDMI_EVI.tif")
+r_tw1_indices_2018110 <- rast("data/HLS_tw1_2018_indices/HLSS30_tw1_stack_doy2018110_NDMI_EVI.tif")
+r_tw1_indices_2018230 <- rast("data/HLS_tw1_2018_indices/HLSS30_tw1_stack_doy2018230_NDMI_EVI.tif")
+r_tw1_indices_2018310 <- rast("data/HLS_tw1_2018_indices/HLSS30_tw1_stack_doy2018310_NDMI_EVI.tif")
+
+r_tw4_indices_2018020 <- rast("data/HLS_tw4_2018_indices/HLSS30_tw4_stack_doy2018020_NDMI_EVI.tif")
+r_tw4_indices_2018110 <- rast("data/HLS_tw4_2018_indices/HLSS30_tw4_stack_doy2018110_NDMI_EVI.tif")
+r_tw4_indices_2018230 <- rast("data/HLS_tw4_2018_indices/HLSS30_tw4_stack_doy2018230_NDMI_EVI.tif")
+r_tw4_indices_2018310 <- rast("data/HLS_tw4_2018_indices/HLSS30_tw4_stack_doy2018310_NDMI_EVI.tif")
+
+
+#use the model to predict gpp rasters based on nmdi and evi rasters
+r_tw4_2018310_gpp_pred <- terra::predict(r_tw4_indices_2018310, gam_evi_ndmi, type = "response")
+names(r_tw4_2018310_gpp_pred) <- "GPP_pred"
+r_tw4_2018310_gpp_pred
+
+writeRaster(
+  r_tw4_2018310_gpp_pred,
+  filename = "results/r_tw4_2018310_GPP_pred.tif",
+  overwrite = TRUE
+)
+
+global(r_tw4_2018310_gpp_pred, fun = mean, na.rm = TRUE)
+
+plot(r_tw4_2018310_gpp_pred, main = "US-Tw4 11/06/2018: Mean Predicted GPP = 7.33 gC m-² d-¹")
+
+
+#PHEW ALL PREDICTED RASTERS SAVED and PLOTTED
+#let's do a lil sine curve comparison
+tw1_flux <- read_csv("data/tw1_flux_dd_2018_clean.csv")
+tw4_flux <- read_csv("data/tw4_flux_dd_2018_clean.csv")
+
+# Predicted (4 dates)
+tw1_pred <- read_csv("data/TW1_Predicted_GPP_Data.csv")
+tw4_pred <- read_csv("data/TW4_Predicted_GPP_Data.csv")
+
+view(tw1_pred)
+
+tw1_flux <- tw1_flux %>% mutate(date = as.Date(date))
+tw4_flux <- tw4_flux %>% mutate(date = as.Date(date))
+
+tw1_pred <- tw1_pred %>% mutate(date = as.Date(date))
+tw4_pred <- tw4_pred %>% mutate(date = as.Date(date))
+
+str(tw1_pred$date)
+head(tw1_pred$date, 10)
+
+str(tw4_pred$date)
+head(tw4_pred$date, 10)
+
+tw1_pred <- tw1_pred %>% mutate(date = mdy(date))
+tw4_pred <- tw4_pred %>% mutate(date = mdy(date))
+
+tw1_pred <- tw1_pred %>% arrange(date)
+tw4_pred <- tw4_pred %>% arrange(date)
+
+tw1_pred %>% select(date) 
+tw4_pred %>% select(date)
+
+p_tw1 <- ggplot() +
+  geom_line(data = tw1_flux, aes(x = date, y = GPP_NT_VUT_REF), linewidth = 0.6) +
+  geom_point(data = tw1_pred, aes(x = date, y = GPP_pred), size = 3) +
+  geom_line(data = tw1_pred, aes(x = date, y = GPP_pred), linetype = "dashed", linewidth = 0.6) +
+  labs(
+    title = "2018 Daily GPP US-Tw1: Twitchell Wetland West Pond",
+    x = "Date",
+    y = "GPP (gC m-² d-¹)",
+    caption = "Line = AmeriFlux daily GPP (ground truth). Points/dashed line = mean predicted GPP from HLS rasters (4 seasonal dates)."
+  ) +
+  theme_classic(base_size = 12)
+
+p_tw1
+
+p_tw4 <- ggplot() +
+  geom_line(data = tw4_flux, aes(x = date, y = GPP_NT_VUT_REF), linewidth = 0.6) +
+  geom_point(data = tw4_pred, aes(x = date, y = GPP_pred), size = 3) +
+  geom_line(data = tw4_pred, aes(x = date, y = GPP_pred), linetype = "dashed", linewidth = 0.6) +
+  labs(
+    title = "2018 Daily GPP at US-Tw4: Twitchell East End Wetland",
+    x = "Date",
+    y = "GPP (gC m-² d-¹)",
+    caption = "Line = AmeriFlux daily GPP (ground truth). Points/dashed line = mean predicted GPP from HLS rasters (4 seasonal dates)."
+  ) +
+  theme_classic(base_size = 12)
+
+p_tw4
+
+
+p_tw4 <- ggplot() +
+  geom_line(
+    data = tw4_flux,
+    aes(x = date, y = GPP_NT_VUT_REF, linetype = "AmeriFlux daily GPP"),
+    linewidth = 0.6,
+    color = "black"
+  ) +
+  geom_line(
+    data = tw4_pred,
+    aes(x = date, y = GPP_pred, linetype = "Predicted mean GPP"),
+    linewidth = 0.6,
+    color = "black"
+  ) +
+  geom_point(
+    data = tw4_pred,
+    aes(x = date, y = GPP_pred),
+    size = 2.5,
+    color = "black"
+  ) +
+  scale_linetype_manual(values = c(
+    "AmeriFlux daily GPP" = "solid",
+    "Predicted mean GPP" = "dashed"
+  )) +
+  labs(
+    title = "2018 GPP at US-Tw4: Twitchell East End Wetland",
+    x = "Date",
+    y = "GPP (gC m-² d-¹)",
+    linetype = NULL,
+    shape = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(legend.position = "top")
+
+p_tw4
+
+p_tw1 <- ggplot() +
+  geom_line(
+    data = tw1_flux,
+    aes(x = date, y = GPP_NT_VUT_REF, linetype = "AmeriFlux daily GPP"),
+    linewidth = 0.6,
+    color = "black"
+  ) +
+  geom_line(
+    data = tw1_pred,
+    aes(x = date, y = GPP_pred, linetype = "Predicted mean GPP"),
+    linewidth = 0.6,
+    color = "black"
+  ) +
+  geom_point(
+    data = tw1_pred,
+    aes(x = date, y = GPP_pred),
+    size = 2.5,
+    color = "black"
+  ) +
+  scale_linetype_manual(values = c(
+    "AmeriFlux daily GPP" = "solid",
+    "Predicted mean GPP" = "dashed"
+  )) +
+  labs(
+    title = "2018 GPP at US-Tw1: Twitchell Wetland West Pond",
+    x = "Date",
+    y = "GPP (gC m-² d-¹)",
+    linetype = NULL,
+    shape = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(legend.position = "top")
+
+p_tw1
+
+p_tw1_tw4 <- ggplot() +
+  geom_line(
+    data = tw1_pred,
+    aes(x = date, y = GPP_pred, linetype = "Tw1 predicted mean GPP"),
+    linewidth = 0.6,
+    color = "black"
+  ) +
+  geom_line(
+    data = tw4_pred,
+    aes(x = date, y = GPP_pred, linetype = "Tw4 predicted mean GPP"),
+    linewidth = 0.6,
+    color = "black"
+  ) +
+  geom_point(
+    data = tw1_pred,
+    aes(x = date, y = GPP_pred),
+    size = 2.5,
+    color = "black"
+  ) +
+  geom_point(
+    data = tw4_pred,
+    aes(x = date, y = GPP_pred),
+    size = 2.5,
+    color = "black"
+  ) +
+  scale_linetype_manual(values = c(
+    "Tw1 predicted mean GPP" = "solid",
+    "Tw4 predicted mean GPP" = "dashed"
+  )) +
+  labs(
+    title = "2018 Predicted GPP at US-Tw1 and US-Tw4",
+    x = "Date",
+    y = "GPP (gC m-² d-¹)",
+    linetype = NULL,
+    shape = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(legend.position = "top")
+
+p_tw1_tw4
+
+
+p_tw1_tw4_dd <- ggplot() +
+  geom_line(
+    data = tw1_flux,
+    aes(x = date, y = GPP_NT_VUT_REF, color = "US-Tw1 daily GPP"),
+    linewidth = 0.6
+  ) +
+  geom_line(
+    data = tw4_flux,
+    aes(x = date, y = GPP_NT_VUT_REF, color = "US-Tw4 daily GPP"),
+    linewidth = 0.6
+  ) +
+  scale_color_manual(values = c(
+    "US-Tw1 daily GPP" = "black",  
+    "US-Tw4 daily GPP" = "gray"   
+  )) +
+  labs(
+    title = "2018 Daily GPP at US-Tw1 and US-Tw4",
+    x = "Date",
+    y = "GPP (gC m-² d-¹)",
+    color = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(legend.position = "top")
+
+p_tw1_tw4_dd
